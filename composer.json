@@ -1,0 +1,27 @@
+{
+    "name": "binomeway/settings",
+    "description": "",
+    "authors": [
+        {
+            "name": "Codrin Axinte",
+            "email": "codrin.axinte@binomeway.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Settings\\": ""
+        }
+    },
+    "require": {
+        "optimistdigital/nova-settings": "^3.5",
+        "jackiedo/dotenv-editor": "^2.0"
+    }
+}
