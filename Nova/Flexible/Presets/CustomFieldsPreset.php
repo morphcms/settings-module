@@ -8,7 +8,6 @@ use Whitecube\NovaFlexibleContent\Layouts\Preset;
 
 class CustomFieldsPreset extends Preset
 {
-
     /**
      * @throws \Exception
      */

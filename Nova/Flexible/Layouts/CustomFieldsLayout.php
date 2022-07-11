@@ -31,8 +31,7 @@ class CustomFieldsLayout extends Layout
         return [
             Text::make('Label')->required(),
             Text::make('Value')->required(),
-            Text::make('Format')->required()->withMeta(['value' => '{LABEL}: {VALUE}'])
+            Text::make('Format')->required()->withMeta(['value' => '{LABEL}: {VALUE}']),
         ];
     }
-
 }

@@ -2,23 +2,25 @@
 
 namespace Modules\Settings\Providers;
 
-use Illuminate\Database\Eloquent\Factory;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Nova\Nova;
+use Modules\Morphling\Events\RegisterModulesNovaTools;
+use Modules\Settings\Listeners\RegisterSettingsModuleListener;
 use Modules\Settings\Observers\SettingsObserver;
 use Modules\Settings\Pages\MailSettings;
 use Modules\Settings\Services\SettingsService;
-use OptimistDigital\NovaSettings\Models\Settings;
+use Outl1ne\NovaSettings\Models\Settings;
 
 class SettingsServiceProvider extends ServiceProvider
 {
     /**
-     * @var string $moduleName
+     * @var string
      */
     protected string $moduleName = 'Settings';
 
     /**
-     * @var string $moduleNameLower
+     * @var string
      */
     protected string $moduleNameLower = 'settings';
 
@@ -38,7 +40,8 @@ class SettingsServiceProvider extends ServiceProvider
             Settings::observe(SettingsObserver::class);
         });
 
-        if(!$this->app->runningInConsole()){
+        if (! $this->app->runningInConsole()) {
+            Event::listen(RegisterModulesNovaTools::class,RegisterSettingsModuleListener::class);
             $this->app->make(SettingsService::class)->boot();
         }
     }
@@ -50,7 +53,7 @@ class SettingsServiceProvider extends ServiceProvider
      */
     public function registerTranslations()
     {
-        $langPath = resource_path('lang/modules/' . $this->moduleNameLower);
+        $langPath = resource_path('lang/modules/'.$this->moduleNameLower);
 
         if (is_dir($langPath)) {
             $this->loadTranslationsFrom($langPath, $this->moduleNameLower);
@@ -67,7 +70,7 @@ class SettingsServiceProvider extends ServiceProvider
     protected function registerConfig()
     {
         $this->publishes([
-            module_path($this->moduleName, 'Config/config.php') => config_path($this->moduleNameLower . '.php'),
+            module_path($this->moduleName, 'Config/config.php') => config_path($this->moduleNameLower.'.php'),
         ], 'config');
         $this->mergeConfigFrom(
             module_path($this->moduleName, 'Config/config.php'), $this->moduleNameLower
@@ -81,13 +84,13 @@ class SettingsServiceProvider extends ServiceProvider
      */
     public function registerViews()
     {
-        $viewPath = resource_path('views/modules/' . $this->moduleNameLower);
+        $viewPath = resource_path('views/modules/'.$this->moduleNameLower);
 
         $sourcePath = module_path($this->moduleName, 'Resources/views');
 
         $this->publishes([
-            $sourcePath => $viewPath
-        ], ['views', $this->moduleNameLower . '-module-views']);
+            $sourcePath => $viewPath,
+        ], ['views', $this->moduleNameLower.'-module-views']);
 
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->moduleNameLower);
     }
@@ -96,10 +99,11 @@ class SettingsServiceProvider extends ServiceProvider
     {
         $paths = [];
         foreach (\Config::get('view.paths') as $path) {
-            if (is_dir($path . '/modules/' . $this->moduleNameLower)) {
-                $paths[] = $path . '/modules/' . $this->moduleNameLower;
+            if (is_dir($path.'/modules/'.$this->moduleNameLower)) {
+                $paths[] = $path.'/modules/'.$this->moduleNameLower;
             }
         }
+
         return $paths;
     }
 
@@ -111,7 +115,7 @@ class SettingsServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->register(RouteServiceProvider::class);
-        $this->app->singleton(SettingsService::class, fn() => new SettingsService([
+        $this->app->singleton(SettingsService::class, fn () => new SettingsService([
             MailSettings::class,
         ]));
     }

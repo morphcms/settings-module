@@ -9,7 +9,6 @@ use Whitecube\NovaFlexibleContent\Layouts\Preset;
 
 class EnvOptionsPreset extends Preset
 {
-
     public function handle(Flexible $field)
     {
         $field->nullable();

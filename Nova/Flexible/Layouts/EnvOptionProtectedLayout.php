@@ -33,6 +33,5 @@ class EnvOptionProtectedLayout extends Layout
             Text::make('Key')->required(),
             Password::make('Value')->nullable(),
         ];
-
     }
 }

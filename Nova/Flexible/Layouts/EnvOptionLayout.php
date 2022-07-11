@@ -32,6 +32,5 @@ class EnvOptionLayout extends Layout
             Text::make('Key')->required(),
             Text::make('Value')->nullable(),
         ];
-
     }
 }

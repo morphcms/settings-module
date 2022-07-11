@@ -11,30 +11,32 @@ use Modules\Settings\Data\ValueObjects\CustomFields;
 use Modules\Settings\Nova\Flexible\Layouts\CustomFieldsLayout;
 use Modules\Settings\Nova\Flexible\Layouts\EnvOptionLayout;
 use Modules\Settings\Nova\Flexible\Layouts\EnvOptionProtectedLayout;
-use OptimistDigital\NovaSettings\NovaSettings;
+use Outl1ne\NovaSettings\NovaSettings;
 use Whitecube\NovaFlexibleContent\Concerns\HasFlexible;
 use Whitecube\NovaFlexibleContent\Value\FlexibleCast;
 
-//@TODO Implement https://github.com/JackieDo/Laravel-Dotenv-Editor
 class SettingsService extends Collection
 {
     use HasFlexible;
 
     private array $pages = [];
+
     private array $settings = [];
+
     private array $casts = [];
 
     /**
      * Settings constructor.
      * Disable the normal construct and initialise it using the nova settings.
-     * @param array $pages
+     *
+     * @param  array  $pages
+     *
      * @throws \Exception
      */
     public function __construct(array $pages = [])
     {
         parent::__construct(
-            $this
-                ->hydratePages($pages)
+            $this->hydratePages($pages)
                 //->resolve()
         );
     }
@@ -52,14 +54,14 @@ class SettingsService extends Collection
     /**
      * Returns an array with the correct casted values.
      * We have to do this because NovaSettings doesn't fully support FlexibleCast.
-     * @param array $settings
-     * @param array|null $casts
+     *
+     * @param  array  $settings
+     * @param  array|null  $casts
      * @return Collection
      */
     private function solveFlexibleCasts(array $settings, array $casts = null): Collection
     {
         return collect($settings)->map(function ($setting, $name) use ($casts) {
-
             return $this->isFlexible($name, $casts ?? $this->casts)
                 // Cast the value to flexible. We have to do this because NovaSettings casts it only when it saves it to the database and not when retrieving it.
                 ? $this->toFlexible($setting)
@@ -72,13 +74,14 @@ class SettingsService extends Collection
      * Determines if the setting is in the casts array and is set to FlexibleCast.
      *
      * @param $settingName
-     * @param array $casts
+     * @param  array  $casts
      * @return bool
      */
-    #[Pure] private function isFlexible($settingName, array $casts = []): bool
-    {
-        return array_key_exists($settingName, $casts) && $casts[$settingName] === FlexibleCast::class;
-    }
+    #[Pure]
+ private function isFlexible($settingName, array $casts = []): bool
+ {
+     return array_key_exists($settingName, $casts) && $casts[$settingName] === FlexibleCast::class;
+ }
 
     private function hydratePages(array $pages): static
     {
@@ -107,10 +110,11 @@ class SettingsService extends Collection
     public function seedDefaults()
     {
         foreach ($this->pages as $page) {
-
             $defaults = $page->defaultValues();
 
-            if (empty($defaults)) continue;
+            if (empty($defaults)) {
+                continue;
+            }
 
             foreach ($defaults as $key => $value) {
                 nova_set_setting_value($key, $value);
@@ -138,34 +142,29 @@ class SettingsService extends Collection
     public function syncWithEnv(string $key, mixed $value)
     {
         $filteredSettings = $this->pages()
-            ->filter(fn($page) => $page instanceof SyncEnv)
-            ->flatMap(fn(SettingsPage $page) => $page->options());
+            ->filter(fn ($page) => $page instanceof SyncEnv)
+            ->flatMap(fn (SettingsPage $page) => $page->options());
 
-
-
-        if (!in_array($key, $filteredSettings->toArray())) {
+        if (! in_array($key, $filteredSettings->toArray())) {
             return;
         }
 
         $editor = DotenvEditor::load();
-
 
         if ($this->isFlexible($key, $this->casts)) {
             $options = $this->toFlexible($value, [
                 'env-option-field' => EnvOptionLayout::class,
                 'env-protected-option-field' => EnvOptionProtectedLayout::class,
                 'custom-field' => CustomFieldsLayout::class,
-            ])->mapWithKeys(fn($layout) => [strtoupper($layout->key) => $layout->value])
-                ->toArray()
-            ;
+            ])->mapWithKeys(fn ($layout) => [strtoupper($layout->key) => $layout->value])
+                ->toArray();
 
-           $editor->setKeys($options);
+            $editor->setKeys($options);
         } else {
             $editor->setKey(strtoupper($key), $value);
         }
 
         $editor->save();
-
     }
 
     public function pages(): Collection
@@ -176,15 +175,16 @@ class SettingsService extends Collection
     /**
      * Returns the primary value from a flexible setting
      *
-     * @param string $flexibleSettingKey The flexible setting that holds the layouts
-     * @param string $attributeName The attribute value to be retrieved. Default 'value'
-     * @param string $primaryKey The key that determines if the layout is primary. Default 'is_primary'
+     * @param  string  $flexibleSettingKey The flexible setting that holds the layouts
+     * @param  string  $attributeName The attribute value to be retrieved. Default 'value'
+     * @param  string  $primaryKey The key that determines if the layout is primary. Default 'is_primary'
      * @return mixed|null
+     *
      * @throws \Exception
      */
     public function primary(string $flexibleSettingKey, string $attributeName = 'value', string $primaryKey = 'is_primary'): mixed
     {
-        if (!$this->isFlexible($flexibleSettingKey)) {
+        if (! $this->isFlexible($flexibleSettingKey)) {
             throw new \Exception("Your are trying to access the setting '{$flexibleSettingKey}' which is not casted as flexible.");
         }
 

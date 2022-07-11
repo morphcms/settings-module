@@ -2,8 +2,6 @@
 
 namespace Modules\Settings\Pages;
 
-use Eminiarts\Tabs\Tab;
-use Eminiarts\Tabs\Tabs;
 use Illuminate\Support\Str;
 use JetBrains\PhpStorm\Pure;
 use Laravel\Nova\Fields\Number;
@@ -18,7 +16,6 @@ use Whitecube\NovaFlexibleContent\Value\FlexibleCast;
 
 class MailSettings extends Page implements SyncEnv
 {
-
     protected array $fillable = [
         'mail_username',
         'mail_password',
@@ -48,8 +45,8 @@ class MailSettings extends Page implements SyncEnv
             Panel::make('Server', [
                 Select::make('Driver', 'mail_mailer')
                     ->options(
-                        fn() => collect(config('mail.mailers', []))
-                            ->mapWithKeys(fn($value, $key) => [$key => Str::headline($key)])
+                        fn () => collect(config('mail.mailers', []))
+                            ->mapWithKeys(fn ($value, $key) => [$key => Str::headline($key)])
                     )
                     ->required(),
 
@@ -70,7 +67,7 @@ class MailSettings extends Page implements SyncEnv
                 Password::make('Password', 'mail_password')->nullable(),
 
                 // Flexible::make('Driver Options', 'driver_options')->preset(EnvOptionsPreset::class),
-            ])
+            ]),
         ];
     }
 
