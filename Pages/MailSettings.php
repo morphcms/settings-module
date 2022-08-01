@@ -2,6 +2,7 @@
 
 namespace Modules\Settings\Pages;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use JetBrains\PhpStorm\Pure;
 use Laravel\Nova\Fields\Number;
@@ -10,8 +11,7 @@ use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Panel;
 use Modules\Settings\Contracts\SyncEnv;
-use Modules\Settings\Nova\Flexible\Presets\EnvOptionsPreset;
-use Whitecube\NovaFlexibleContent\Flexible;
+use Modules\Settings\Enums\SettingsPermission;
 use Whitecube\NovaFlexibleContent\Value\FlexibleCast;
 
 class MailSettings extends Page implements SyncEnv
@@ -69,6 +69,11 @@ class MailSettings extends Page implements SyncEnv
                 // Flexible::make('Driver Options', 'driver_options')->preset(EnvOptionsPreset::class),
             ]),
         ];
+    }
+
+    public function authorize(Request $request): bool
+    {
+        return $request->user()->can(SettingsPermission::UpdateSystem->value);
     }
 
     public function defaultValues(): array

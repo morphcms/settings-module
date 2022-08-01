@@ -1,7 +1,7 @@
 {
     "name": "Settings",
     "alias": "settings",
-    "description": "",
+    "description": "Manage settings for each module and platform.",
     "keywords": [],
     "priority": 0,
     "providers": [
@@ -9,5 +9,9 @@
     ],
     "aliases": {},
     "files": [],
-    "requires": []
+    "requires": ["morphling"],
+    "minimumCoreVersion": "",
+    "title": "Settings",
+    "version": "0.0.0",
+    "author": "Binome Way"
 }

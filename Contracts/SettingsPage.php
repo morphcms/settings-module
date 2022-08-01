@@ -2,6 +2,8 @@
 
 namespace Modules\Settings\Contracts;
 
+use Illuminate\Http\Request;
+
 interface SettingsPage
 {
     public function name(): string;
@@ -17,4 +19,6 @@ interface SettingsPage
     public function guarded(): array;
 
     public function slug();
+
+    public function authorize(Request $request): bool;
 }

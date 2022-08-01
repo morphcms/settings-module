@@ -2,8 +2,10 @@
 
 namespace Modules\Settings\Pages;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Modules\Settings\Contracts\SettingsPage;
+use Modules\Settings\Enums\SettingsPermission;
 
 abstract class Page implements SettingsPage
 {
@@ -48,5 +50,10 @@ abstract class Page implements SettingsPage
     public function guarded(): array
     {
         return $this->guarded;
+    }
+
+    public function authorize(Request $request): bool
+    {
+        return $request->user()->can(SettingsPermission::Update->value);
     }
 }

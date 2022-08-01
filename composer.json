@@ -1,6 +1,14 @@
 {
     "name": "morphcms/settings-module",
-    "description": "",
+    "type": "laravel-module",
+    "description": "Manage settings for each module and platform.",
+    "keywords": [
+        "morphling",
+        "laravel",
+        "settings",
+        "preferences",
+        "laravel nova"
+    ],
     "authors": [
         {
             "name": "Codrin Axinte",
@@ -11,7 +19,6 @@
         "laravel": {
             "providers": [],
             "aliases": {
-
             }
         }
     },

@@ -2,13 +2,9 @@
 
 namespace Modules\Settings\Providers;
 
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Nova\Nova;
-use Modules\Morphling\Events\RegisterModulesNovaTools;
-use Modules\Settings\Listeners\RegisterSettingsModuleListener;
 use Modules\Settings\Observers\SettingsObserver;
-use Modules\Settings\Pages\MailSettings;
 use Modules\Settings\Services\SettingsService;
 use Outl1ne\NovaSettings\Models\Settings;
 
@@ -37,13 +33,12 @@ class SettingsServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
 
         Nova::serving(function () {
+            if (! $this->app->runningInConsole()) {
+                $this->app->make(SettingsService::class)->boot();
+            }
+
             Settings::observe(SettingsObserver::class);
         });
-
-        if (! $this->app->runningInConsole()) {
-            Event::listen(RegisterModulesNovaTools::class,RegisterSettingsModuleListener::class);
-            $this->app->make(SettingsService::class)->boot();
-        }
     }
 
     /**
@@ -115,18 +110,7 @@ class SettingsServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->register(RouteServiceProvider::class);
-        $this->app->singleton(SettingsService::class, fn () => new SettingsService([
-            MailSettings::class,
-        ]));
-    }
-
-    /**
-     * Get the services provided by the provider.
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return [];
+        $this->app->register(EventServiceProvider::class);
+        $this->app->singleton(SettingsService::class);
     }
 }

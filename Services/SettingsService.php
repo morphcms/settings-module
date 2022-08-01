@@ -2,12 +2,15 @@
 
 namespace Modules\Settings\Services;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Jackiedo\DotenvEditor\Facades\DotenvEditor;
 use JetBrains\PhpStorm\Pure;
+use Modules\Morphling\Utils\DataAggregator;
 use Modules\Settings\Contracts\SettingsPage;
 use Modules\Settings\Contracts\SyncEnv;
 use Modules\Settings\Data\ValueObjects\CustomFields;
+use Modules\Settings\Events\BootSettingsPage;
 use Modules\Settings\Nova\Flexible\Layouts\CustomFieldsLayout;
 use Modules\Settings\Nova\Flexible\Layouts\EnvOptionLayout;
 use Modules\Settings\Nova\Flexible\Layouts\EnvOptionProtectedLayout;
@@ -15,7 +18,7 @@ use Outl1ne\NovaSettings\NovaSettings;
 use Whitecube\NovaFlexibleContent\Concerns\HasFlexible;
 use Whitecube\NovaFlexibleContent\Value\FlexibleCast;
 
-class SettingsService extends Collection
+class SettingsService
 {
     use HasFlexible;
 
@@ -27,18 +30,13 @@ class SettingsService extends Collection
 
     /**
      * Settings constructor.
-     * Disable the normal construct and initialise it using the nova settings.
-     *
-     * @param  array  $pages
+     * FIXME: Disable the normal construct and initialise it using the nova settings.
      *
      * @throws \Exception
      */
-    public function __construct(array $pages = [])
+    public function __construct(private Request $request)
     {
-        parent::__construct(
-            $this->hydratePages($pages)
-                //->resolve()
-        );
+        $this->pages = DataAggregator::event(new BootSettingsPage($this))->toArray();
     }
 
     private function resolve(): Collection
@@ -78,36 +76,32 @@ class SettingsService extends Collection
      * @return bool
      */
     #[Pure]
- private function isFlexible($settingName, array $casts = []): bool
- {
-     return array_key_exists($settingName, $casts) && $casts[$settingName] === FlexibleCast::class;
- }
-
-    private function hydratePages(array $pages): static
+    private function isFlexible($settingName, array $casts = []): bool
     {
-        foreach ($pages as $page) {
-            $instance = app($page);
-            if ($instance instanceof SettingsPage) {
-                $this->pages[$page] = $instance;
-            } else {
-                throw new \Exception("The page {$page} is not implementing the SettingsPage contract.");
-            }
-        }
-
-        return $this;
+        return array_key_exists($settingName, $casts) && $casts[$settingName] === FlexibleCast::class;
     }
 
     public function boot()
     {
+        if (! auth()->check()) {
+            return;
+        }
+
+        $pages = DataAggregator::event(new BootSettingsPage($this))->toArray();
+
         // Collect Settings
-        foreach ($this->pages as $page) {
-            if ($page instanceof SettingsPage) {
+        foreach ($pages as $page) {
+            if (! ($page instanceof SettingsPage)) {
+                throw new \Exception("The page {$page} is not implementing the SettingsPage contract.");
+            }
+
+            if ($page->authorize($this->request)) {
                 NovaSettings::addSettingsFields($page->fields(), $page->casts(), $page->name());
             }
         }
     }
 
-    public function seedDefaults()
+    public function seedDefaults(): void
     {
         foreach ($this->pages as $page) {
             $defaults = $page->defaultValues();
@@ -122,21 +116,15 @@ class SettingsService extends Collection
         }
     }
 
-    public function getFromPage(string $page): Collection
-    {
-        $instance = $this->getPage($page);
-
-        return collect(nova_get_settings($instance->options()));
-    }
-
-    public function getPage($page): SettingsPage
-    {
-        return $this->pages[$page];
-    }
-
     public function customFields(string $key): CustomFields
     {
+        // TODO: Should be refactored to a cast
         return new CustomFields($this->get($key));
+    }
+
+    public function get(string $setting, mixed $default = null)
+    {
+        return nova_get_setting($setting, $default);
     }
 
     public function syncWithEnv(string $key, mixed $value)

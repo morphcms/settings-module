@@ -2,6 +2,6 @@
 
 namespace Modules\Settings\Models;
 
-class Settings extends \OptimistDigital\NovaSettings\Models\Settings
+class Settings extends \Outl1ne\NovaSettings\Models\Settings
 {
 }
